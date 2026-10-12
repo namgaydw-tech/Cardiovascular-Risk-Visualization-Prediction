@@ -36,7 +36,7 @@ flowchart LR
     I -->|SHAP TreeExplainer| I2[/api/explain/]
 ```
 
-**Leakage safety.** The angiography columns `LAD`, `LCX`, `RCA`, `Cath` are hard-excluded from every feature matrix and only used as targets. This is enforced by automated tests (`backend/tests/test_leakage_and_split.py`) that fail if a forbidden column ever re-enters the model input. There are no genuine patient/visit identifiers in this dataset, so no group column is invented: exact duplicates are checked (0 found) and a `SEED=42` stratified 80/20 split on CAD + 5-fold stratified CV is used instead, documented honestly in [docs/DATASET_CARD.md](docs/DATASET_CARD.md).
+**Leakage safety.** The angiography columns `LAD`, `LCX`, `RCA`, `Cath` are hard-excluded from every feature matrix and only used as targets. This is enforced by automated tests (`backend/tests/test_leakage_and_split.py`) that fail if a forbidden column ever re-enters the model input. There are no genuine patient/visit identifiers in this dataset, so no group column is invented: exact duplicates are checked (0 found) and a `SEED=42` stratified 80/20 split on CAD + 5-fold stratified CV is used instead, and the split is reproducible from `SEED=42` alone (covered by tests).
 
 **Model selection metric.** Primary metric is cross-validated **macro F0.5** — the F-beta score with β = 0.5, which weights precision twice as much as recall:
 
@@ -102,12 +102,10 @@ cardiovision-ai/
 ├── reports/
 │   ├── leaderboards/          # full per-target CSV+JSON leaderboards (8 models x 4 targets)
 │   └── training_summary.json  # chosen models, CV scores, holdout metrics
-├── docs/                      # ARCHITECTURE.md, MODEL_CARD.md, DATASET_CARD.md,
-│                              # HACKATHON_REPORT.md, DEMO_SCRIPT.md, DEPLOYMENT.md
-├── .github/workflows/test.yml # CI: backend pytest + leakage tests, frontend build
-├── docker-compose.yml
 └── README.md
 ```
+
+Not yet committed (next items): standalone `docs/` cards (architecture / model card / dataset card / report / demo script), `vercel.json` SPA config, `docker-compose.yml`, and a GitHub Actions workflow.
 
 ---
 
@@ -220,7 +218,7 @@ Clicking a vessel shows its target name, probability, model, threshold and posit
 
 ## Deployment
 
-`vercel.json` is included for the static frontend SPA (routes + cache headers + SPA rewrites). The FastAPI backend is not serverless-friendly (joblib + SHAP need persistent files and memory), so it should run on a small VM or container platform; the Vite `VITE_API_BASE` env var points the site at any backend URL. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full, tested-in-repo procedure and exactly what has / has not been live-verified.
+Deployment configs are **not yet included** — this is the main open item. The plan, matching the code as written: `vercel.json` for the static frontend SPA (the Vite build emits an SPA; rewrites needed for client-side routes), and the FastAPI backend hosted separately on a container/VM platform because joblib + SHAP artifacts want persistent files and more memory than serverless functions provide. The frontend already supports this split: `VITE_API_BASE` env var (falling back to same-origin `/api`) points the site at any backend URL, and `frontend/vite.config.ts` proxies `/api` to `:8000` in dev.
 
 ---
 
@@ -243,18 +241,11 @@ Known limitations (not hidden):
 - ⚠️ LCX / RCA sensitivity is modest (0.46 / 0.60) — per-vessel stenosis is a harder signal than overall CAD from these features
 - ⚠️ No genuine patient/visit group IDs exist in the source data, so plain stratified (not group-k-fold) splitting is used, with exact-duplicate checks
 - ⚠️ 3D heart geometry is a stylized schematic, not anatomical imaging.
+- ⚠️ Not yet in this repo: standalone docs set (architecture / model card / dataset card / six-page report / demo script), `vercel.json`, `docker-compose.yml`, CI workflow.
 
----
+## Documentation
 
-## Documentation set
-
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — full system/data-flow/runtime diagrams
-- [docs/DATASET_CARD.md](docs/DATASET_CARD.md) — dataset provenance, columns, encodings, caveats
-- [docs/MODEL_CARD.md](docs/MODEL_CARD.md) — intended use, training-data summary, eval-data, performance, limitations, ethics
-- [docs/HACKATHON_REPORT.md](docs/HACKATHON_REPORT.md) — six-section technical report with equations and diagrams
-- [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) — 5-minute judge-walkthrough script
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — Vercel + backend hosting, tested steps and open items
-
+This README is the current documentation. Standalone cards (DATASET_CARD, MODEL_CARD, ARCHITECTURE, DEMO_SCRIPT, six-page HACKATHON_REPORT) are the next planned addition — the key facts they would contain (validation results, encodings, metrics, limitations) are already stated above and in `reports/training_summary.json`.
 ---
 
 ## License & attribution

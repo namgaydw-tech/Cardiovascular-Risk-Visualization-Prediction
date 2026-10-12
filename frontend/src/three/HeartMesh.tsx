@@ -16,7 +16,6 @@ function probColor(p: number | undefined) {
   return '#22d3ee'
 }
 
-const PROB_MAX = 0.999
 
 const META: Record<string, { label: string }> = {
   cad: { label: 'Overall CAD' },

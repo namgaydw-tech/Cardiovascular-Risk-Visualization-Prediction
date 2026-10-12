@@ -92,7 +92,7 @@ export default function PatientInput() {
         setSubmitError(`Field "${k}" must be numeric (got "${v}")`)
         return
       }
-      if (num && num.min !== null && num.max !== null && (Number(parsed) < num.min || Number(parsed) > num.max)) {
+      if (num && num.min != null && num.max != null && (Number(parsed) < num.min || Number(parsed) > num.max)) {
         setSubmitError(`Field "${k}" out of plausible range (${num.min}–${num.max})`)
         return
       }
